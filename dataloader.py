@@ -39,7 +39,7 @@ def random_scale(img, scale_range=(0.75, 1.25)):
     scaled = cv2.resize(img, (new_w, new_h))
     return cv2.resize(scaled, (w, h))
 
-def add_random_noise(img, noise_level=50):
+def add_random_noise(img, noise_level=30):
     noise = np.random.randint(-noise_level, noise_level, img.shape, dtype='int16')
     noisy_img = np.clip(img + noise, 0, 255).astype('uint8')
     return noisy_img
@@ -52,48 +52,30 @@ def augment_image(img):
     img = add_random_noise(img)
     return img
 
-def pad_image(img, target_size=(256, 256), padding_color=(0, 0, 0)):
-    """Pads an image to the specified target size while maintaining its aspect ratio."""
-    original_h, original_w = img.shape[:2]
-    target_h, target_w = target_size
-    
-    # Calculate scaling factor to fit the image within target size
-    scale = min(target_w / original_w, target_h / original_h)
-    new_w, new_h = int(original_w * scale), int(original_h * scale)
-    
-    # Resize the image while preserving aspect ratio
-    resized_img = cv2.resize(img, (new_w, new_h))
-    
-    # Create a new image with the target size and fill with padding color
-    padded_img = np.full((target_h, target_w, 3), padding_color, dtype=np.uint8)
-    
-    # Calculate padding positions
-    top = (target_h - new_h) // 2
-    left = (target_w - new_w) // 2
-    padded_img[top:top + new_h, left:left + new_w] = resized_img
-    
-    return padded_img
-
-def save_augmented_images(images, image_paths, output_folder="augmented", target_size=(1600, 1200)):
-    os.makedirs(output_folder, exist_ok=True)
+def save_augmented_images(images, image_paths, output_folder="Broken"):
+    p = os.path.join("augmented", output_folder)
+    os.makedirs(p, exist_ok=True)
     for idx, (img, path) in enumerate(zip(images, image_paths)):
-        padded_img = pad_image(img, target_size)
-        cv2.imwrite(os.path.join(output_folder, f"augmented_{idx}_0.jpeg"), padded_img)
-        for i in range(1, 10):
-            augmented_img = augment_image(padded_img)
-            cv2.imwrite(os.path.join(output_folder, f"augmented_{idx}_{i}.jpeg"), augmented_img)
-            
-        # print(padded_img.shape)
-        # filename = os.path.basename(path)
-        # new_filename = f"augmented_{idx}_{filename}"
-        # cv2.imwrite(os.path.join(output_folder, new_filename), padded_img)
-        # cv2.imwrite(os.path.join(output_folder, new_filename), augmented_img)
+        for i in range(10):
+            augmented_img = augment_image(img)
+            # filename = os.path.basename(path)
+            new_filename = f"{idx}_{i}.jpeg"
+            cv2.imwrite(os.path.join(p, new_filename), augmented_img)
 
 if __name__ == "__main__":
-    folder_path = "/home/tree/Courses/CV/Final_Project/data"  # Replace with the path to your folder containing images
+    foler_name = "Missing_Tablets"
+    folder_path = f"/home/tree/Courses/CV/Final_Project/{foler_name}"  # Replace with the path to your folder containing images
     images, image_paths = load_images_from_folder(folder_path)
-    print(f"Found {len(images)} images")
-    save_augmented_images(images, image_paths, target_size=(1600, 1200))  # Set desired target size
-    folder_path = "/home/tree/Courses/CV/Final_Project/augmented"
+    print(f"Loaded {len(images)} images from {folder_path}")
+    save_augmented_images(images, image_paths, output_folder=foler_name)
+
+
+
+
+    folder_path = f"/home/tree/Courses/CV/Final_Project/augmented/{foler_name}"  # Replace with the path to your folder containing images
     images, image_paths = load_images_from_folder(folder_path)
-    print(f"Found {len(images)} augmented images")
+    print(f"Saved {len(images)} images")
+
+
+
+
